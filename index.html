@@ -1,0 +1,907 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Konfigurasi VLAN · TJKT Learning</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo+2:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: satu bingkai slide 16:9 di tengah, bilah navigasi di bawah. Tiap jenis slide punya pola tata letak sendiri. */
+:root{
+  --bg:#e6edf6; --slide:#fbfcfe; --panel:#f1f5fb; --ink:#0c1f3f; --muted:#475b7a; --line:#d4dfee;
+  --accent:#1557d6; --accent-ink:#ffffff; --cyan:#0aa7c9;
+  --v10:#2563d9; --v20:#a86f06; --v30:#0b7d70; --v10s:#e3ecfd; --v20s:#fbf0dc; --v30s:#dcf3ef;
+  --ok:#137a4f; --ok-s:#e2f4ea; --bad:#b4282f; --bad-s:#fbe6e7;
+  --code-bg:#0a1426; --code-fg:#d3e0f0;
+  /* Typography standar keterbacaan */
+  --t-main:38px; --t-title:30px; --t-sub:24px; --t-body:19px; --t-cap:15px; --t-nav:15px; --t-ref:13px;
+  --f-display:"Exo 2","Segoe UI",system-ui,sans-serif;
+  --f-body:"Plus Jakarta Sans","Segoe UI",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#050b17; --slide:#0b1527; --panel:#101d33; --ink:#e4ecf8; --muted:#9db0cc; --line:#1f3252;
+  --accent:#6ea2ff; --accent-ink:#06101f; --cyan:#3fd6f0;
+  --v10:#6ea2ff; --v20:#f0b04a; --v30:#38cdb8; --v10s:#13254a; --v20s:#2c2210; --v30s:#0e2b28;
+  --ok:#4ccf93; --ok-s:#10291d; --bad:#ff8a8f; --bad-s:#30151a; --code-bg:#060d1a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#050b17; --slide:#0b1527; --panel:#101d33; --ink:#e4ecf8; --muted:#9db0cc; --line:#1f3252;
+  --accent:#6ea2ff; --accent-ink:#06101f; --cyan:#3fd6f0;
+  --v10:#6ea2ff; --v20:#f0b04a; --v30:#38cdb8; --v10s:#13254a; --v20s:#2c2210; --v30s:#0e2b28;
+  --ok:#4ccf93; --ok-s:#10291d; --bad:#ff8a8f; --bad-s:#30151a; --code-bg:#060d1a; color-scheme:dark}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:var(--t-body);line-height:1.55}
+.deck{min-height:100%;display:flex;flex-direction:column;align-items:center;gap:14px;padding-block:18px 18px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.topbar{width:min(1280px,100%);display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:var(--t-cap);color:var(--muted)}
+.topbar b{font-family:var(--f-display);color:var(--ink);letter-spacing:.04em}
+.progress{flex:1;max-width:340px;height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.progress i{display:block;height:100%;background:var(--accent);transition:width .35s}
+
+.frame{width:min(1280px,100%);position:relative}
+.slide{background:var(--slide);border:1px solid var(--line);border-radius:14px;padding:44px 60px 40px;display:flex;flex-direction:column;gap:22px;min-height:min(720px,calc(100vh - 150px));box-shadow:0 24px 60px -30px rgba(12,31,63,.35)}
+@media (min-width:1000px){.slide{aspect-ratio:16/9;min-height:auto}}
+.slide[hidden]{display:none!important}
+.slide.enter{animation:enter .4s ease}
+@keyframes enter{from{opacity:.0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+h1,h2,h3{margin:0;font-family:var(--f-display);line-height:1.15;text-wrap:balance}
+h1{font-size:var(--t-main);font-weight:800}
+h2{font-size:var(--t-title);font-weight:700}
+h3{font-size:var(--t-sub);font-weight:700}
+p{margin:0}
+.kind{display:inline-flex;align-items:center;gap:8px;font-family:var(--f-mono);font-size:var(--t-cap);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.kind::before{content:"";width:18px;height:2px;background:currentColor}
+.head{display:flex;flex-direction:column;gap:6px}
+.lead{font-size:var(--t-sub);color:var(--muted);font-weight:500;line-height:1.4}
+.muted{color:var(--muted)}
+.cap{font-size:var(--t-cap);color:var(--muted);text-align:center}
+code,.mono{font-family:var(--f-mono)}
+code{font-size:.92em;background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:0 5px}
+
+/* konsep: teks kiri, ilustrasi kanan */
+.split{flex:1;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:44px;align-items:center}
+.split>div{min-width:0}
+.textcol{display:flex;flex-direction:column;gap:16px}
+.ticks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.ticks li{display:grid;grid-template-columns:26px minmax(0,1fr);gap:10px}
+.ticks li::before{content:"";width:12px;height:12px;margin:9px 0 0 4px;border-radius:3px;background:var(--accent)}
+.terms{display:flex;flex-direction:column;gap:12px}
+.term{display:grid;grid-template-columns:150px minmax(0,1fr);gap:14px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.term:last-child{border-bottom:0}
+.term b{font-family:var(--f-display);font-size:var(--t-body)}
+figure{margin:0;display:flex;flex-direction:column;gap:10px;align-items:center}
+figure svg{width:100%;height:auto;max-height:420px}
+figcaption{font-size:var(--t-cap);color:var(--muted);text-align:center}
+
+/* perbandingan */
+.versus{flex:1;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:22px;align-items:stretch}
+.vcard{border:1px solid var(--line);border-radius:12px;padding:24px 26px;display:flex;flex-direction:column;gap:14px;background:var(--panel)}
+.vcard.good{border-color:color-mix(in srgb,var(--accent) 45%,var(--line));background:color-mix(in srgb,var(--accent) 6%,var(--slide))}
+.vcard dl{margin:0;display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+.vcard dt{font-size:var(--t-cap);font-family:var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.vcard dd{margin:2px 0 0}
+.vs{align-self:center;font-family:var(--f-display);font-weight:800;font-size:var(--t-sub);color:var(--muted)}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
+table{width:100%;border-collapse:collapse;font-size:18px;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:11px 16px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+th{font-size:var(--t-cap);font-family:var(--f-mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted);background:var(--panel);font-weight:600;white-space:nowrap}
+td.k{font-weight:600}
+.pill{display:inline-block;font-family:var(--f-mono);font-size:var(--t-cap);font-weight:600;padding:2px 9px;border-radius:5px;white-space:nowrap}
+.p10{background:var(--v10s);color:var(--v10)}.p20{background:var(--v20s);color:var(--v20)}.p30{background:var(--v30s);color:var(--v30)}.pt{background:color-mix(in srgb,var(--cyan) 14%,var(--slide));color:var(--accent)}
+
+/* topologi */
+.topo{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:0}
+.topo svg{width:100%;max-width:980px;height:auto}
+.topo text{font-family:var(--f-body)}
+.vbtn{background:none;border:1px solid var(--line);border-radius:6px;padding:6px 12px;font:600 var(--t-nav)/1.2 var(--f-body);color:var(--ink);cursor:pointer;min-height:36px}
+.vbtn[aria-pressed="true"]{background:var(--ink);color:var(--slide);border-color:var(--ink)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+
+/* analisis */
+.notes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.note{border-top:3px solid var(--accent);padding-top:10px}
+.note b{display:block;font-size:var(--t-body)}
+.note p{font-size:var(--t-cap);color:var(--muted);line-height:1.5}
+
+/* konfigurasi */
+.steps{display:flex;flex-direction:column;gap:8px}
+.step{display:grid;grid-template-columns:40px minmax(0,1fr);gap:12px;align-items:center;text-align:left;background:none;border:1px solid var(--line);border-radius:10px;padding:10px 14px;font:500 var(--t-body)/1.35 var(--f-body);color:var(--ink);cursor:pointer}
+.step span{font-family:var(--f-display);font-weight:800;font-size:var(--t-sub);color:var(--muted)}
+.step[aria-selected="true"]{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--slide))}
+.step[aria-selected="true"] span{color:var(--accent)}
+.code{background:var(--code-bg);color:var(--code-fg);border-radius:12px;padding:20px 22px;font-family:var(--f-mono);font-size:18px;line-height:1.6;white-space:pre;overflow:auto;max-height:440px}
+.code .c{color:#7f93ad}.code .k{color:#7fe9ff}
+
+/* simulasi */
+.work{flex:1;display:grid;grid-template-columns:230px minmax(0,1fr);gap:18px;min-height:0}
+.palette{display:flex;flex-direction:column;gap:8px;padding:14px;border:1px dashed var(--line);border-radius:12px;background:var(--panel)}
+.palette h3{font-size:var(--t-body)}
+.dev{display:flex;align-items:center;gap:8px;width:100%;text-align:left;background:var(--slide);border:1px solid var(--line);border-radius:8px;padding:7px 10px;font:600 var(--t-cap)/1.3 var(--f-body);color:var(--ink);cursor:grab;min-height:40px}
+.dev small{display:block;font-weight:400;color:var(--muted);font-family:var(--f-mono);font-size:13px}
+.dev[aria-pressed="true"]{outline:2px solid var(--accent);outline-offset:1px}
+.dev.ok{border-color:var(--ok);background:var(--ok-s)}.dev.bad{border-color:var(--bad);background:var(--bad-s)}
+.dev svg{flex:none}
+.board{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:auto auto auto;gap:12px;min-width:0}
+.sw{grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:12px;padding:10px;border-radius:10px;background:var(--code-bg);color:var(--code-fg);font-family:var(--f-mono);font-size:var(--t-cap)}
+.sw .ports{display:flex;gap:3px}
+.sw .ports i{width:9px;height:9px;border-radius:2px;background:#33445e;display:block}
+.zone{border:2px dashed var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:8px;min-height:120px;transition:border-color .2s, background .2s}
+.zone.over,.zone.armed{border-style:solid}
+.zone.z10{border-color:color-mix(in srgb,var(--v10) 55%,var(--line))}.zone.z20{border-color:color-mix(in srgb,var(--v20) 55%,var(--line))}.zone.z30{border-color:color-mix(in srgb,var(--v30) 55%,var(--line))}.zone.zt{border-color:color-mix(in srgb,var(--cyan) 60%,var(--line))}
+.zone.over{background:var(--panel)}
+.zhead{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.zhead b{font-family:var(--f-display);font-size:var(--t-body)}
+.zone .drop{background:none;border:1px dashed var(--line);border-radius:6px;font:500 13px var(--f-body);color:var(--muted);padding:4px 8px;cursor:pointer;min-height:30px}
+.zone .items{display:flex;flex-wrap:wrap;gap:6px}
+.zone .items .dev{width:auto}
+.gw{display:flex;align-items:center;gap:8px;font-size:var(--t-cap)}
+.gw input{flex:1;min-width:0;font:15px var(--f-mono);padding:5px 8px;border:1px solid var(--line);border-radius:6px;background:var(--slide);color:var(--ink)}
+.gw input.ok{border-color:var(--ok)}.gw input.bad{border-color:var(--bad)}
+.simbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.result{font-size:var(--t-cap);padding:8px 12px;border-radius:8px}
+.result.ok{background:var(--ok-s)}.result.bad{background:var(--bad-s)}
+
+/* evaluasi */
+.quizgrid{flex:1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-content:start}
+.qcard{border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:10px;background:var(--panel)}
+.qcard .qn{font-family:var(--f-mono);font-size:13px;color:var(--muted)}
+.qcard p.q{font-size:18px;font-weight:600;line-height:1.4}
+.qopts{display:flex;flex-direction:column;gap:6px}
+.qopt{text-align:left;background:var(--slide);border:1px solid var(--line);border-radius:7px;padding:7px 10px;font:500 var(--t-cap)/1.35 var(--f-body);color:var(--ink);cursor:pointer;min-height:38px}
+.qopt:hover:not(:disabled){border-color:var(--accent)}
+.qopt:disabled{cursor:default}
+.qopt.right{border-color:var(--ok);background:var(--ok-s)}.qopt.wrong{border-color:var(--bad);background:var(--bad-s)}
+.qfb{font-size:13.5px;color:var(--muted);line-height:1.45}
+.qcard.done-ok{border-color:var(--ok)}.qcard.done-bad{border-color:var(--bad)}
+
+/* buttons & nav */
+.btn{display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:var(--accent-ink);border:0;border-radius:8px;padding:9px 16px;font:700 var(--t-nav)/1.2 var(--f-body);cursor:pointer;min-height:42px;text-decoration:none}
+.btn.ghost{background:none;color:var(--accent);border:1px solid var(--line)}
+.ctrl{width:min(1280px,100%);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.ctrl .nav{display:inline-flex;align-items:center;gap:8px;background:var(--slide);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:9px 16px;font:600 var(--t-nav)/1.2 var(--f-body);cursor:pointer;min-height:44px}
+.ctrl .nav:disabled{opacity:.4;cursor:default}
+.dots{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.dots button{width:30px;height:30px;border-radius:6px;border:1px solid var(--line);background:var(--slide);color:var(--muted);font:600 13px var(--f-mono);cursor:pointer}
+.dots button[aria-current="true"]{background:var(--ink);color:var(--slide);border-color:var(--ink)}
+.counter{font-size:var(--t-nav);color:var(--muted);font-variant-numeric:tabular-nums}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* cover */
+.cover{background:#071733;color:#e8f0ff;border-color:#13284d;position:relative;overflow:hidden}
+.cover .kind{color:#2ee6ff}
+.cover .lead{color:#b8c8e6}
+.cover .grid-bg{position:absolute;inset:0;background-image:linear-gradient(rgba(127,233,255,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(127,233,255,.07) 1px,transparent 1px);background-size:44px 44px;pointer-events:none}
+.cover .btn{background:#2ee6ff;color:#04101f}
+.agenda{display:flex;flex-wrap:wrap;gap:8px}
+.agenda button{font:500 var(--t-nav)/1.2 var(--f-body);padding:8px 14px;min-height:38px;border-radius:99px;border:1px solid #2a4a80;background:transparent;color:#cfe0ff;cursor:pointer;transition:background .2s,border-color .2s,color .2s}
+.agenda button:hover{background:rgba(46,230,255,.12);border-color:#2ee6ff;color:#ffffff}
+.stack3d{perspective:1100px;display:flex;justify-content:center;align-items:center;height:100%;min-height:300px}
+.stack3d .iso{position:relative;width:240px;height:240px;transform:rotateX(58deg) rotateZ(-42deg);transform-style:preserve-3d;margin-top:120px}
+.stack3d .lyr{position:absolute;inset:0;border-radius:12px;border:2px solid;transform-style:preserve-3d;display:flex;flex-direction:column;justify-content:flex-start;padding:14px 16px;font-family:var(--f-display);font-weight:800;font-size:22px;color:#fff}
+.stack3d .lyr small{font-family:var(--f-mono);font-weight:400;font-size:12px;opacity:.85}
+.stack3d .base{background:linear-gradient(135deg,#17387c,#0f2758);border-color:#3d7bff;box-shadow:0 0 40px rgba(61,123,255,.45)}
+.l10{border-color:#5b93ff!important;background:rgba(91,147,255,.18);transform:translateZ(80px);animation:fl 6s ease-in-out infinite}
+.l20{border-color:#f5b544!important;background:rgba(245,181,68,.15);transform:translateZ(150px);animation:fl 6s ease-in-out .5s infinite}
+.l30{border-color:#2fd4b4!important;background:rgba(47,212,180,.15);transform:translateZ(220px);animation:fl 6s ease-in-out 1s infinite}
+@keyframes fl{50%{margin-top:-8px}}
+
+.refs{font-size:var(--t-ref);color:var(--muted);line-height:1.6;border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:2px}
+.refs b{font-family:var(--f-mono);letter-spacing:.06em;text-transform:uppercase}
+.sumgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.sum{padding:18px;border-radius:12px;background:var(--panel);border:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
+.sum b{font-family:var(--f-display);font-size:var(--t-sub);color:var(--accent)}
+
+/* hasil nilai */
+.menubtn{display:inline-flex;align-items:center;gap:7px;background:var(--slide);border:1px solid var(--line);border-radius:8px;padding:7px 12px;font:600 var(--t-nav)/1.2 var(--f-body);color:var(--ink);cursor:pointer;min-height:40px}
+.menubtn:hover{border-color:var(--accent);color:var(--accent)}
+.badge{background:var(--accent);color:var(--accent-ink);border-radius:99px;padding:1px 8px;font:700 12px var(--f-mono)}
+.scrim{position:fixed;inset:0;background:rgba(5,11,23,.5);z-index:30}
+.respanel{position:fixed;top:0;right:0;bottom:0;width:min(780px,100%);z-index:31;background:var(--slide);border-left:1px solid var(--line);box-shadow:-30px 0 60px -30px rgba(5,11,23,.5);display:flex;flex-direction:column;gap:16px;overflow-y:auto;padding-top:calc(env(safe-area-inset-top,0px) + 20px);padding-bottom:calc(env(safe-area-inset-bottom,0px) + 24px);padding-left:max(22px,env(safe-area-inset-left,0px));padding-right:max(22px,env(safe-area-inset-right,0px))}
+.rp-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.iconbtn{background:none;border:1px solid var(--line);border-radius:8px;width:44px;height:44px;display:grid;place-items:center;color:var(--ink);cursor:pointer}
+.rp-tabs{display:flex;gap:4px;border-bottom:1px solid var(--line)}
+.rp-tab{background:none;border:0;border-bottom:3px solid transparent;padding:10px 12px;font:600 var(--t-nav)/1.2 var(--f-body);color:var(--muted);cursor:pointer}
+.rp-tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.rp-pane{display:flex;flex-direction:column;gap:16px}
+.score-hero{display:flex;align-items:center;gap:20px;flex-wrap:wrap;padding:18px 20px;border-radius:12px;background:var(--panel);border:1px solid var(--line)}
+.score-hero .big{font-family:var(--f-display);font-weight:800;font-size:64px;line-height:1;color:var(--accent);font-variant-numeric:tabular-nums}
+.sh-text{display:flex;flex-direction:column;gap:6px;min-width:0}
+.status{align-self:flex-start;font:700 var(--t-cap)/1.2 var(--f-body);padding:5px 12px;border-radius:99px;background:var(--bad-s);color:var(--bad)}
+.status.pass{background:var(--ok-s);color:var(--ok)}
+.note-sm{font-size:var(--t-cap);color:var(--muted);line-height:1.45;margin:0}
+.rgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:12px}
+.rbox{border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:6px}
+.rbox b{font-size:var(--t-body)}
+.rlabel{font:600 13px var(--f-mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.qlist{margin:4px 0 0;padding-left:20px;font-size:var(--t-cap);display:flex;flex-direction:column;gap:2px}
+.qlist .ok{color:var(--ok)}.qlist .bad{color:var(--bad)}.qlist .wait{color:var(--muted)}
+.sendform{border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.sendform h3{font-size:var(--t-body)}
+.fields{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1.3fr) minmax(0,.8fr);gap:10px}
+.fields label{display:flex;flex-direction:column;gap:4px;font:600 var(--t-cap) var(--f-body);color:var(--muted)}
+.fields input,.ttools select{font:500 16px var(--f-body);padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--slide);color:var(--ink);min-width:0}
+.sendrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.tstats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.tstats>div{padding:12px 14px;border-radius:10px;background:var(--panel);border:1px solid var(--line);display:flex;flex-direction:column;gap:2px}
+.tstats b{font-family:var(--f-display);font-size:28px;font-variant-numeric:tabular-nums}
+.ttools{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.ttools label{display:flex;align-items:center;gap:8px;font:600 var(--t-cap) var(--f-body);color:var(--muted)}
+.tscroll{max-height:none}
+.ttable{font-size:var(--t-cap)}
+.ttable td,.ttable th{padding:8px 10px;white-space:nowrap}
+.ttable td.num{font-variant-numeric:tabular-nums;text-align:right}
+@media (max-width:640px){.fields{grid-template-columns:minmax(0,1fr)}.tstats{grid-template-columns:minmax(0,1fr)}.score-hero .big{font-size:52px}.menubtn{padding:7px 10px}}
+
+@media (max-width:999px){
+  .slide{padding:28px 22px}
+  .split,.versus{grid-template-columns:minmax(0,1fr)}
+  .vs{justify-self:center}
+  .notes,.sumgrid{grid-template-columns:minmax(0,1fr)}
+  .quizgrid{grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr))}
+  .work{grid-template-columns:minmax(0,1fr)}
+  .palette{flex-direction:row;flex-wrap:wrap}.palette h3{width:100%}.palette .dev{width:auto}
+  .term{grid-template-columns:minmax(0,1fr);gap:2px}
+}
+@media (max-width:560px){.board{grid-template-columns:minmax(0,1fr)}.dots{display:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+</head>
+<body>
+<div class="deck">
+  <div class="topbar"><span><b>TJKT LEARNING</b> · Konfigurasi VLAN</span><div class="progress" aria-hidden="true"><i id="prog"></i></div><span id="kindlabel">Pembuka</span><button class="menubtn" type="button" id="openRes"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Hasil Nilai<span class="badge" id="resBadge" hidden></span></button></div>
+
+  <div class="frame" id="frame">
+
+  <!-- 1 COVER -->
+  <section class="slide cover" data-kind="Pembuka" aria-label="Slide 1, judul">
+    <div class="grid-bg" aria-hidden="true"></div>
+    <div class="split" style="position:relative">
+      <div class="textcol">
+        <div class="kind">Materi Pembelajaran · TJKT</div>
+        <h1>Konfigurasi Virtual LAN (VLAN)</h1>
+        <p class="lead">Memisahkan jaringan, meningkatkan keamanan, dan mengoptimalkan kinerja jaringan.</p>
+        <div class="agenda" role="group" aria-label="Lompat ke bagian materi"><button type="button" data-go="2">Konsep</button><button type="button" data-go="4">Perbandingan</button><button type="button" data-go="7">Topologi</button><button type="button" data-go="8">Analisis</button><button type="button" data-go="9">Konfigurasi</button><button type="button" data-go="10">Simulasi</button><button type="button" data-go="11">Evaluasi</button></div>
+        <div><button class="btn" type="button" data-go="2">Mulai belajar
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>
+      </div>
+      <div class="stack3d" role="img" aria-label="Ilustrasi tiga lapisan VLAN di atas satu switch">
+        <div class="iso">
+          <div class="lyr base">SWITCH<small>satu perangkat fisik</small></div>
+          <div class="lyr l10">VLAN 10<small>IT</small></div>
+          <div class="lyr l20">VLAN 20<small>TEACHER</small></div>
+          <div class="lyr l30">VLAN 30<small>STUDENT</small></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 KONSEP -->
+  <section class="slide" data-kind="Konsep" aria-label="Slide 2, apa itu VLAN" hidden>
+    <div class="head"><div class="kind">Konsep · 1</div><h2>Apa itu VLAN?</h2></div>
+    <div class="split">
+      <div class="textcol">
+        <p class="lead">Virtual Local Area Network membagi <b>satu jaringan fisik</b> menjadi <b>beberapa jaringan logis</b> yang terpisah.</p>
+        <p>Perangkat di VLAN berbeda tidak dapat berkomunikasi langsung tanpa proses routing.</p>
+        <ul class="ticks">
+          <li>Mengelompokkan perangkat berdasarkan fungsi atau departemen.</li>
+          <li>Membatasi lalu lintas broadcast agar lebih efisien.</li>
+          <li>Meningkatkan keamanan dan mempermudah pengelolaan.</li>
+        </ul>
+      </div>
+      <figure>
+        <svg viewBox="0 0 520 380" role="img" aria-label="Satu switch terhubung ke tiga kelompok PC berwarna berbeda">
+          <rect x="140" y="30" width="240" height="64" rx="10" style="fill:var(--code-bg)"/>
+          <text x="260" y="58" text-anchor="middle" style="fill:#e8f0ff;font:700 16px var(--f-mono)">SWITCH</text>
+          <g style="fill:var(--v10)"><rect x="160" y="70" width="14" height="10" rx="2"/><rect x="178" y="70" width="14" height="10" rx="2"/><rect x="196" y="70" width="14" height="10" rx="2"/></g>
+          <g style="fill:var(--v20)"><rect x="232" y="70" width="14" height="10" rx="2"/><rect x="250" y="70" width="14" height="10" rx="2"/><rect x="268" y="70" width="14" height="10" rx="2"/></g>
+          <g style="fill:var(--v30)"><rect x="304" y="70" width="14" height="10" rx="2"/><rect x="322" y="70" width="14" height="10" rx="2"/><rect x="340" y="70" width="14" height="10" rx="2"/></g>
+          <path d="M185 94 C185 160 90 160 90 220" style="fill:none;stroke:var(--v10);stroke-width:3"/>
+          <path d="M257 94 L260 220" style="fill:none;stroke:var(--v20);stroke-width:3"/>
+          <path d="M329 94 C329 160 430 160 430 220" style="fill:none;stroke:var(--v30);stroke-width:3"/>
+          <rect x="20" y="220" width="140" height="130" rx="12" style="fill:var(--v10s);stroke:var(--v10);stroke-width:2"/>
+          <rect x="190" y="220" width="140" height="130" rx="12" style="fill:var(--v20s);stroke:var(--v20);stroke-width:2"/>
+          <rect x="360" y="220" width="140" height="130" rx="12" style="fill:var(--v30s);stroke:var(--v30);stroke-width:2"/>
+          <g style="fill:none;stroke-width:2.2">
+            <g style="stroke:var(--v10)"><rect x="42" y="250" width="40" height="28" rx="3"/><rect x="98" y="250" width="40" height="28" rx="3"/></g>
+            <g style="stroke:var(--v20)"><rect x="240" y="250" width="40" height="28" rx="3"/></g>
+            <g style="stroke:var(--v30)"><rect x="378" y="250" width="30" height="24" rx="3"/><rect x="415" y="250" width="30" height="24" rx="3"/><rect x="452" y="250" width="30" height="24" rx="3"/></g>
+          </g>
+          <text x="90" y="310" text-anchor="middle" style="fill:var(--v10);font:800 18px var(--f-display)">VLAN 10</text><text x="90" y="332" text-anchor="middle" style="fill:var(--ink);font:500 15px var(--f-body)">IT</text>
+          <text x="260" y="310" text-anchor="middle" style="fill:var(--v20);font:800 18px var(--f-display)">VLAN 20</text><text x="260" y="332" text-anchor="middle" style="fill:var(--ink);font:500 15px var(--f-body)">Teacher</text>
+          <text x="430" y="310" text-anchor="middle" style="fill:var(--v30);font:800 18px var(--f-display)">VLAN 30</text><text x="430" y="332" text-anchor="middle" style="fill:var(--ink);font:500 15px var(--f-body)">Student</text>
+        </svg>
+        <figcaption>Gambar 1. Satu switch fisik dibagi menjadi tiga jaringan logis.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- 3 KONSEP -->
+  <section class="slide" data-kind="Konsep" aria-label="Slide 3, istilah kunci" hidden>
+    <div class="head"><div class="kind">Konsep · 2</div><h2>Empat istilah sebelum konfigurasi</h2></div>
+    <div class="split">
+      <div class="terms">
+        <div class="term"><b>VLAN ID</b><span>Identitas numerik tiap VLAN. Pada Cisco umumnya 1–4094.</span></div>
+        <div class="term"><b>Access Port</b><span>Port ke perangkat akhir. Menjadi anggota satu VLAN.</span></div>
+        <div class="term"><b>Trunk Port</b><span>Membawa banyak VLAN antar-switch atau ke router dengan tagging 802.1Q.</span></div>
+        <div class="term"><b>Inter-VLAN Routing</b><span>Mekanisme Layer 3 agar VLAN berbeda dapat saling berkomunikasi.</span></div>
+      </div>
+      <figure>
+        <svg viewBox="0 0 520 360" role="img" aria-label="Dua switch dihubungkan trunk port, masing-masing punya access port ke PC">
+          <rect x="30" y="60" width="180" height="54" rx="9" style="fill:var(--code-bg)"/><text x="120" y="93" text-anchor="middle" style="fill:#e8f0ff;font:700 15px var(--f-mono)">SW-1</text>
+          <rect x="310" y="60" width="180" height="54" rx="9" style="fill:var(--code-bg)"/><text x="400" y="93" text-anchor="middle" style="fill:#e8f0ff;font:700 15px var(--f-mono)">SW-2</text>
+          <line x1="210" y1="80" x2="310" y2="80" style="stroke:var(--v10);stroke-width:4"/>
+          <line x1="210" y1="88" x2="310" y2="88" style="stroke:var(--v20);stroke-width:4"/>
+          <line x1="210" y1="96" x2="310" y2="96" style="stroke:var(--v30);stroke-width:4"/>
+          <rect x="222" y="22" width="76" height="28" rx="6" style="fill:var(--panel);stroke:var(--accent)"/><text x="260" y="41" text-anchor="middle" style="fill:var(--accent);font:700 13px var(--f-mono)">802.1Q</text>
+          <text x="260" y="134" text-anchor="middle" style="fill:var(--ink);font:700 15px var(--f-body)">Trunk port</text>
+          <line x1="70" y1="114" x2="70" y2="230" style="stroke:var(--v10);stroke-width:3"/>
+          <line x1="170" y1="114" x2="170" y2="230" style="stroke:var(--v20);stroke-width:3"/>
+          <line x1="350" y1="114" x2="350" y2="230" style="stroke:var(--v10);stroke-width:3"/>
+          <line x1="450" y1="114" x2="450" y2="230" style="stroke:var(--v30);stroke-width:3"/>
+          <g style="fill:var(--panel);stroke-width:2.2">
+            <rect x="44" y="230" width="52" height="36" rx="4" style="stroke:var(--v10)"/><rect x="144" y="230" width="52" height="36" rx="4" style="stroke:var(--v20)"/>
+            <rect x="324" y="230" width="52" height="36" rx="4" style="stroke:var(--v10)"/><rect x="424" y="230" width="52" height="36" rx="4" style="stroke:var(--v30)"/>
+          </g>
+          <text x="70" y="292" text-anchor="middle" style="fill:var(--v10);font:700 14px var(--f-mono)">VLAN 10</text>
+          <text x="170" y="292" text-anchor="middle" style="fill:var(--v20);font:700 14px var(--f-mono)">VLAN 20</text>
+          <text x="350" y="292" text-anchor="middle" style="fill:var(--v10);font:700 14px var(--f-mono)">VLAN 10</text>
+          <text x="450" y="292" text-anchor="middle" style="fill:var(--v30);font:700 14px var(--f-mono)">VLAN 30</text>
+          <text x="120" y="330" text-anchor="middle" style="fill:var(--ink);font:700 15px var(--f-body)">Access port</text>
+          <text x="400" y="330" text-anchor="middle" style="fill:var(--ink);font:700 15px var(--f-body)">Access port</text>
+        </svg>
+        <figcaption>Gambar 2. Access port ke PC; trunk port membawa VLAN 10, 20, 30 dalam satu kabel.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- 4 PERBANDINGAN kartu -->
+  <section class="slide" data-kind="Perbandingan" aria-label="Slide 4, LAN tanpa dan dengan VLAN" hidden>
+    <div class="head"><div class="kind">Perbandingan · 1</div><h2>LAN datar vs LAN dengan VLAN</h2><p class="muted">Satu ruang server, 24 port, tiga kelompok pengguna. Apa bedanya?</p></div>
+    <div class="versus">
+      <article class="vcard">
+        <h3>Tanpa VLAN</h3>
+        <dl>
+          <div><dt>Broadcast domain</dt><dd>Satu domain besar. Broadcast dari lab siswa sampai ke PC guru.</dd></div>
+          <div><dt>Keamanan</dt><dd>Semua perangkat saling terlihat dalam satu jaringan.</dd></div>
+          <div><dt>Pengelolaan</dt><dd>Pindah ruang berarti pindah kabel atau ganti switch.</dd></div>
+          <div><dt>Kinerja</dt><dd>Lalu lintas broadcast menumpuk saat perangkat bertambah.</dd></div>
+        </dl>
+      </article>
+      <div class="vs" aria-hidden="true">vs</div>
+      <article class="vcard good">
+        <h3>Dengan VLAN</h3>
+        <dl>
+          <div><dt>Broadcast domain</dt><dd>Satu domain per VLAN. Broadcast tidak menyeberang.</dd></div>
+          <div><dt>Keamanan</dt><dd>Lalu lintas antarbagian dipisah dan diatur lewat routing.</dd></div>
+          <div><dt>Pengelolaan</dt><dd>Cukup ubah <code>switchport access vlan</code> pada port.</dd></div>
+          <div><dt>Kinerja</dt><dd>Broadcast lebih terkendali, jaringan tetap efisien.</dd></div>
+        </dl>
+      </article>
+    </div>
+  </section>
+
+  <!-- 5 PERBANDINGAN tabel -->
+  <section class="slide" data-kind="Perbandingan" aria-label="Slide 5, access port dan trunk port" hidden>
+    <div class="head"><div class="kind">Perbandingan · 2</div><h2>Access port vs trunk port</h2></div>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Aspek</th><th>Access port</th><th>Trunk port</th></tr></thead>
+        <tbody>
+          <tr><td class="k">Terhubung ke</td><td>PC, laptop, printer, access point</td><td>Switch lain atau router</td></tr>
+          <tr><td class="k">Jumlah VLAN</td><td>Satu VLAN</td><td>Banyak VLAN sekaligus</td></tr>
+          <tr><td class="k">Tagging frame</td><td>Tanpa tag</td><td>Tag 802.1Q berisi VLAN ID</td></tr>
+          <tr><td class="k">Perintah inti</td><td><code>switchport mode access</code><br><code>switchport access vlan 10</code></td><td><code>switchport mode trunk</code><br><code>switchport trunk allowed vlan 10,20,30</code></td></tr>
+          <tr><td class="k">Contoh di lab</td><td><span class="pill p10">Fa0/1–8</span> <span class="pill p20">Fa0/9–16</span> <span class="pill p30">Fa0/17–24</span></td><td><span class="pill pt">Gi0/1</span> uplink</td></tr>
+          <tr><td class="k">Verifikasi</td><td><code>show vlan brief</code></td><td><code>show interfaces trunk</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="cap" style="text-align:left">Tabel 1. Perbedaan dua jenis port switch pada konfigurasi VLAN.</p>
+  </section>
+
+  <!-- 6 PERBANDINGAN kartu -->
+  <section class="slide" data-kind="Perbandingan" aria-label="Slide 6, SVI dan router-on-a-stick" hidden>
+    <div class="head"><div class="kind">Perbandingan · 3</div><h2>Dua cara inter-VLAN routing</h2><p class="muted">Pilih sesuai perangkat yang tersedia di lab.</p></div>
+    <div class="versus">
+      <article class="vcard good">
+        <h3>SVI pada switch Layer 3</h3>
+        <dl>
+          <div><dt>Perangkat</dt><dd>Switch multilayer (Layer 3)</dd></div>
+          <div><dt>Gateway</dt><dd><code>interface vlan 10</code> dengan IP 192.168.10.1</dd></div>
+          <div><dt>Perintah kunci</dt><dd><code>ip routing</code> lalu <code>no shutdown</code> di tiap SVI</dd></div>
+          <div><dt>Kelebihan</dt><dd>Routing di dalam switch, tidak bergantung satu link ke router.</dd></div>
+        </dl>
+      </article>
+      <div class="vs" aria-hidden="true">vs</div>
+      <article class="vcard">
+        <h3>Router-on-a-stick</h3>
+        <dl>
+          <div><dt>Perangkat</dt><dd>Switch Layer 2 + router</dd></div>
+          <div><dt>Gateway</dt><dd>Subinterface <code>g0/0.10</code> dengan IP 192.168.10.1</dd></div>
+          <div><dt>Perintah kunci</dt><dd><code>encapsulation dot1Q 10</code> di tiap subinterface</dd></div>
+          <div><dt>Kelebihan</dt><dd>Cukup switch Layer 2 biasa; satu link trunk ke router.</dd></div>
+        </dl>
+      </article>
+    </div>
+  </section>
+
+  <!-- 7 TOPOLOGI -->
+  <section class="slide" data-kind="Topologi" aria-label="Slide 7, topologi jaringan" hidden>
+    <div class="head"><div class="kind">Topologi</div><h2>Topologi jaringan contoh</h2></div>
+    <div class="topo">
+      <svg id="topoSvg" viewBox="0 0 980 430" role="img" aria-label="Internet terhubung ke router Layer 3, trunk ke switch VLAN, lalu tiga segmen VLAN">
+        <g id="tp-wan">
+          <path d="M455 50 a26 26 0 0 1 48 -12 a22 22 0 0 1 38 14 a20 20 0 0 1 -4 40 h-82 a22 22 0 0 1 0 -42z" style="fill:var(--panel);stroke:var(--muted);stroke-width:2"/>
+          <text x="490" y="78" text-anchor="middle" style="fill:var(--ink);font:700 15px var(--f-body)">INTERNET / WAN</text>
+        </g>
+        <line x1="490" y1="92" x2="490" y2="132" style="stroke:var(--muted);stroke-width:3"/>
+        <rect x="400" y="132" width="180" height="54" rx="10" style="fill:var(--code-bg)"/>
+        <text x="490" y="157" text-anchor="middle" style="fill:#e8f0ff;font:700 15px var(--f-mono)">ROUTER / L3</text>
+        <text x="490" y="176" text-anchor="middle" style="fill:#9fb3cc;font:400 13px var(--f-mono)">gateway .1 tiap VLAN</text>
+        <g id="tp-trunk">
+          <line x1="482" y1="186" x2="482" y2="236" style="stroke:var(--v10);stroke-width:4"/>
+          <line x1="490" y1="186" x2="490" y2="236" style="stroke:var(--v20);stroke-width:4"/>
+          <line x1="498" y1="186" x2="498" y2="236" style="stroke:var(--v30);stroke-width:4"/>
+          <text x="512" y="217" style="fill:var(--accent);font:700 14px var(--f-mono)">TRUNK 802.1Q · Gi0/1</text>
+        </g>
+        <rect x="380" y="236" width="220" height="54" rx="10" style="fill:var(--code-bg)"/>
+        <text x="490" y="268" text-anchor="middle" style="fill:#e8f0ff;font:700 15px var(--f-mono)">SWITCH VLAN</text>
+        <g class="seg" data-v="10">
+          <path d="M420 290 C420 330 180 320 180 352" style="fill:none;stroke:var(--v10);stroke-width:3"/>
+          <rect x="70" y="352" width="220" height="66" rx="10" style="fill:var(--v10s);stroke:var(--v10);stroke-width:2"/>
+          <text x="180" y="379" text-anchor="middle" style="fill:var(--v10);font:800 17px var(--f-display)">VLAN 10 · IT</text>
+          <text x="180" y="403" text-anchor="middle" style="fill:var(--ink);font:500 14px var(--f-mono)">192.168.10.0/24 · Fa0/1–8</text>
+        </g>
+        <g class="seg" data-v="20">
+          <line x1="490" y1="290" x2="490" y2="352" style="stroke:var(--v20);stroke-width:3"/>
+          <rect x="380" y="352" width="220" height="66" rx="10" style="fill:var(--v20s);stroke:var(--v20);stroke-width:2"/>
+          <text x="490" y="379" text-anchor="middle" style="fill:var(--v20);font:800 17px var(--f-display)">VLAN 20 · TEACHER</text>
+          <text x="490" y="403" text-anchor="middle" style="fill:var(--ink);font:500 14px var(--f-mono)">192.168.20.0/24 · Fa0/9–16</text>
+        </g>
+        <g class="seg" data-v="30">
+          <path d="M560 290 C560 330 800 320 800 352" style="fill:none;stroke:var(--v30);stroke-width:3"/>
+          <rect x="690" y="352" width="220" height="66" rx="10" style="fill:var(--v30s);stroke:var(--v30);stroke-width:2"/>
+          <text x="800" y="379" text-anchor="middle" style="fill:var(--v30);font:800 17px var(--f-display)">VLAN 30 · STUDENT</text>
+          <text x="800" y="403" text-anchor="middle" style="fill:var(--ink);font:500 14px var(--f-mono)">192.168.30.0/24 · Fa0/17–24</text>
+        </g>
+      </svg>
+      <div class="chips" role="group" aria-label="Sorot segmen VLAN">
+        <button class="vbtn" type="button" data-hl="all" aria-pressed="true">Semua</button>
+        <button class="vbtn" type="button" data-hl="10" aria-pressed="false">VLAN 10</button>
+        <button class="vbtn" type="button" data-hl="20" aria-pressed="false">VLAN 20</button>
+        <button class="vbtn" type="button" data-hl="30" aria-pressed="false">VLAN 30</button>
+      </div>
+      <p class="cap">Gambar 3. Port access menghubungkan perangkat akhir; trunk membawa ketiga VLAN melalui satu link ke Layer 3.</p>
+    </div>
+  </section>
+
+  <!-- 8 ANALISIS -->
+  <section class="slide" data-kind="Analisis" aria-label="Slide 8, tabel kebutuhan jaringan" hidden>
+    <div class="head"><div class="kind">Analisis</div><h2>Tabel kebutuhan jaringan</h2></div>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Ruang / bagian</th><th>Port</th><th>VLAN</th><th>Network</th><th>Gateway</th><th>Pool DHCP</th><th>Port switch</th></tr></thead>
+        <tbody>
+          <tr><td class="k">Lab IT</td><td>8</td><td><span class="pill p10">10 · IT</span></td><td>192.168.10.0/24</td><td>192.168.10.1</td><td>.11 – .254</td><td>Fa0/1 – Fa0/8</td></tr>
+          <tr><td class="k">Ruang guru</td><td>8</td><td><span class="pill p20">20 · TEACHER</span></td><td>192.168.20.0/24</td><td>192.168.20.1</td><td>.11 – .254</td><td>Fa0/9 – Fa0/16</td></tr>
+          <tr><td class="k">Lab siswa</td><td>8</td><td><span class="pill p30">30 · STUDENT</span></td><td>192.168.30.0/24</td><td>192.168.30.1</td><td>.11 – .254</td><td>Fa0/17 – Fa0/24</td></tr>
+          <tr><td class="k">Uplink</td><td>1</td><td><span class="pill pt">trunk 10,20,30</span></td><td>—</td><td>—</td><td>—</td><td>Gi0/1</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="notes">
+      <div class="note"><b>Kenapa /24?</b><p>Tiap VLAN mendapat 254 alamat host. Jauh di atas 8 port saat ini, sehingga ruang bisa tumbuh tanpa ganti skema IP.</p></div>
+      <div class="note"><b>Kenapa .1 – .10 dikecualikan?</b><p>Alamat .1 dipakai gateway; .2 – .10 disiapkan untuk server dan perangkat beralamat statis.</p></div>
+      <div class="note"><b>Kenapa trunk dibatasi?</b><p>Hanya VLAN 10, 20, 30 yang dibutuhkan di uplink. VLAN lain tidak ikut terbawa.</p></div>
+    </div>
+  </section>
+
+  <!-- 9 KONFIGURASI (konsep: teks kiri, ilustrasi kanan) -->
+  <section class="slide" data-kind="Konsep" aria-label="Slide 9, langkah konfigurasi Cisco" hidden>
+    <div class="head"><div class="kind">Konsep · 3 · Konfigurasi Cisco</div><h2>Empat langkah konfigurasi</h2></div>
+    <div class="split">
+      <div class="textcol">
+        <div class="steps" role="tablist" aria-label="Langkah konfigurasi">
+          <button class="step" role="tab" type="button" aria-selected="true" data-step="0"><span>1</span>Membuat VLAN dan memberi nama</button>
+          <button class="step" role="tab" type="button" aria-selected="false" data-step="1"><span>2</span>Mengatur port access</button>
+          <button class="step" role="tab" type="button" aria-selected="false" data-step="2"><span>3</span>Mengatur port trunk</button>
+          <button class="step" role="tab" type="button" aria-selected="false" data-step="3"><span>4</span>Inter-VLAN routing (SVI)</button>
+        </div>
+        <p class="cap" style="text-align:left">Pilih langkah untuk melihat perintahnya.</p>
+      </div>
+      <figure>
+        <div class="code" id="codebox" role="tabpanel" aria-live="polite" style="width:100%"></div>
+        <figcaption id="codecap">Perintah di mode konfigurasi global.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- 10 SIMULASI -->
+  <section class="slide" data-kind="Simulasi" aria-label="Slide 10, area kerja desain jaringan" hidden>
+    <div class="head"><div class="kind">Simulasi</div><h2>Area kerja: rancang VLAN sekolah</h2><p class="muted" style="font-size:var(--t-cap)">Seret perangkat ke VLAN yang tepat, atau klik perangkat lalu klik "Taruh di sini". Isi gateway tiap VLAN, lalu periksa desainmu.</p></div>
+    <div class="work">
+      <div class="palette" id="palette" aria-label="Perangkat belum ditempatkan">
+        <h3>Perangkat</h3>
+      </div>
+      <div class="board">
+        <div class="sw"><span>SW-TJKT</span><span class="ports" id="swports" aria-hidden="true"></span></div>
+        <div class="zone z10" data-zone="10"><div class="zhead"><b style="color:var(--v10)">VLAN 10 · IT</b><button class="drop" type="button">Taruh di sini</button></div><div class="items"></div><label class="gw">Gateway<input id="gw10" placeholder="192.168.10.?" autocomplete="off"></label></div>
+        <div class="zone z20" data-zone="20"><div class="zhead"><b style="color:var(--v20)">VLAN 20 · TEACHER</b><button class="drop" type="button">Taruh di sini</button></div><div class="items"></div><label class="gw">Gateway<input id="gw20" placeholder="192.168.20.?" autocomplete="off"></label></div>
+        <div class="zone z30" data-zone="30"><div class="zhead"><b style="color:var(--v30)">VLAN 30 · STUDENT</b><button class="drop" type="button">Taruh di sini</button></div><div class="items"></div><label class="gw">Gateway<input id="gw30" placeholder="192.168.30.?" autocomplete="off"></label></div>
+        <div class="zone zt" data-zone="trunk"><div class="zhead"><b style="color:var(--accent)">TRUNK · ke router</b><button class="drop" type="button">Taruh di sini</button></div><div class="items"></div><p style="font-size:13px;color:var(--muted)">Allowed VLAN mengikuti VLAN yang terisi.</p></div>
+      </div>
+    </div>
+    <div class="simbar">
+      <button class="btn" type="button" id="simcheck">Periksa desain</button>
+      <button class="btn ghost" type="button" id="simreset">Ulangi</button>
+      <div class="result" id="simres" aria-live="polite" hidden></div>
+    </div>
+  </section>
+
+  <!-- 11 EVALUASI -->
+  <section class="slide" data-kind="Evaluasi" aria-label="Slide 11, kartu pertanyaan" hidden>
+    <div class="head" style="flex-direction:row;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:10px">
+      <div class="head"><div class="kind">Evaluasi</div><h2>Kartu pertanyaan</h2></div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="counter" id="qscore">Skor 0/6</span><button class="btn ghost" type="button" id="qreset">Ulangi</button><button class="btn" type="button" id="qsend">Lihat hasil &amp; kirim ke guru</button></div>
+    </div>
+    <div class="quizgrid" id="quizgrid"></div>
+  </section>
+
+  <!-- 12 RANGKUMAN -->
+  <section class="slide" data-kind="Rangkuman" aria-label="Slide 12, rangkuman dan referensi" hidden>
+    <div class="head"><div class="kind">Rangkuman</div><h2>VLAN membuat jaringan lebih aman, efisien, dan terorganisir</h2></div>
+    <div class="sumgrid">
+      <div class="sum"><b>Pisahkan</b><span>Satu switch fisik, banyak jaringan logis dengan VLAN ID dan port access.</span></div>
+      <div class="sum"><b>Hubungkan</b><span>Trunk 802.1Q membawa banyak VLAN; inter-VLAN routing menghubungkannya di Layer 3.</span></div>
+      <div class="sum"><b>Buktikan</b><span>Verifikasi dengan <code>show vlan brief</code>, <code>show interfaces trunk</code>, dan ping.</span></div>
+    </div>
+    <p><b>Tantangan praktik:</b> buat VLAN 10, 20, dan 30, atur port access dan trunk, lalu buktikan dengan perintah show dan ping.</p>
+    <div><a class="btn" href="lab-maya-vlan.html">Buka Lab Maya VLAN 3D
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></a></div>
+    <div class="refs" style="margin-top:auto">
+      <b>Referensi</b>
+      <span>1. Materi presentasi “Konfigurasi Virtual LAN (VLAN)”, TJKT.</span>
+      <span>2. Cisco Networking Academy. CCNA: Switching, Routing, and Wireless Essentials (SRWE) — modul VLAN dan Inter-VLAN Routing.</span>
+      <span>3. IEEE 802.1Q. Standard for Local and Metropolitan Area Networks — Bridges and Bridged Networks.</span>
+    </div>
+  </section>
+
+  </div>
+
+  <nav class="ctrl" aria-label="Navigasi slide">
+    <button class="nav" type="button" id="prev"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>Sebelumnya</button>
+    <div class="dots" id="dots"></div>
+    <span class="counter" id="counter">1 / 12</span>
+    <button class="nav" type="button" id="next">Berikutnya<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+  </nav>
+</div>
+
+<div class="scrim" id="scrim" hidden></div>
+<div class="respanel" id="respanel" role="dialog" aria-modal="true" aria-labelledby="resTitle" hidden>
+  <div class="rp-head">
+    <div><div class="kind">Evaluasi</div><h2 id="resTitle">Hasil Nilai</h2></div>
+    <button class="iconbtn" type="button" id="resClose" aria-label="Tutup hasil nilai"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  </div>
+  <div class="rp-tabs" role="tablist" aria-label="Tampilan hasil">
+    <button class="rp-tab" role="tab" type="button" id="tabMine" aria-selected="true" aria-controls="paneMine">Nilai saya</button>
+    <button class="rp-tab" role="tab" type="button" id="tabTeacher" aria-selected="false" aria-controls="paneTeacher" hidden>Rekap guru</button>
+  </div>
+
+  <section id="paneMine" role="tabpanel" aria-labelledby="tabMine" class="rp-pane">
+    <div class="score-hero">
+      <div class="big" id="rNilai">0</div>
+      <div class="sh-text">
+        <span class="status" id="rStatus">Belum tuntas</span>
+        <p class="note-sm">KKTP 80 · Nilai = 80% kartu evaluasi + 20% simulasi desain</p>
+      </div>
+    </div>
+    <div class="rgrid">
+      <div class="rbox"><span class="rlabel">Kartu evaluasi · slide 11</span><b id="rKartu">0/6 benar</b><ol class="qlist" id="rQlist"></ol></div>
+      <div class="rbox"><span class="rlabel">Simulasi desain · slide 10</span><b id="rSim">Belum diperiksa</b><p class="note-sm" id="rSimNote">Tekan "Periksa desain" di slide 10 agar hasilnya terhitung.</p></div>
+    </div>
+    <form class="sendform" id="sendForm" novalidate>
+      <h3>Kirim ke guru</h3>
+      <div class="fields">
+        <label for="fNama">Nama lengkap<input id="fNama" autocomplete="name" maxlength="80" required></label>
+        <label for="fKelas">Kelas<input id="fKelas" placeholder="XI TJKT 1" maxlength="30" required></label>
+        <label for="fAbsen">No. absen<input id="fAbsen" inputmode="numeric" maxlength="3"></label>
+      </div>
+      <div class="sendrow"><button class="btn" type="submit" id="fSend">Kirim ke guru</button><span class="note-sm" id="fHint" aria-live="polite"></span></div>
+      <div class="result" id="fMsg" aria-live="polite" hidden></div>
+      <p class="note-sm" id="fLast" hidden></p>
+    </form>
+  </section>
+
+  <section id="paneTeacher" role="tabpanel" aria-labelledby="tabTeacher" class="rp-pane" hidden>
+    <div class="tstats">
+      <div><span class="rlabel">Siswa mengirim</span><b id="tCount">0</b></div>
+      <div><span class="rlabel">Rata-rata nilai</span><b id="tAvg">–</b></div>
+      <div><span class="rlabel">Tuntas (≥ 80)</span><b id="tPass">0</b></div>
+    </div>
+    <div class="ttools">
+      <label for="tKelas">Kelas <select id="tKelas"><option value="">Semua kelas</option></select></label>
+      <button class="btn ghost" type="button" id="tCsv">Unduh CSV</button>
+    </div>
+    <div class="tbl tscroll"><table class="ttable"><thead><tr><th>Nama</th><th>Kelas</th><th>Absen</th><th>Kartu</th><th>Simulasi</th><th>Nilai</th><th>Status</th><th>Kirim</th><th>Waktu</th></tr></thead><tbody id="tBody"></tbody></table></div>
+    <p class="note-sm" id="tMsg">Belum ada kiriman. Nilai siswa muncul di sini begitu mereka menekan "Kirim ke guru".</p>
+  </section>
+</div>
+
+<script>
+(function(){
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const slides=$$('.slide');let cur=0;
+const dots=$('#dots');
+slides.forEach((s,i)=>{const b=document.createElement('button');b.type='button';b.textContent=i+1;b.setAttribute('aria-label','Slide '+(i+1)+': '+s.dataset.kind);b.onclick=()=>go(i);dots.append(b)});
+function go(i,fromHash){
+  i=Math.max(0,Math.min(slides.length-1,i));
+  slides[cur].hidden=true;cur=i;const s=slides[cur];s.hidden=false;
+  s.classList.remove('enter');void s.offsetWidth;s.classList.add('enter');
+  $('#counter').textContent=(cur+1)+' / '+slides.length;$('#kindlabel').textContent=s.dataset.kind;
+  $('#prog').style.width=((cur+1)/slides.length*100)+'%';
+  [...dots.children].forEach((d,j)=>d.setAttribute('aria-current',String(j===cur)));
+  $('#prev').disabled=cur===0;$('#next').disabled=cur===slides.length-1;
+  if(!fromHash){try{history.replaceState(null,'','#s'+(cur+1))}catch(e){location.hash='s'+(cur+1)}}
+}
+$('#prev').onclick=()=>go(cur-1);$('#next').onclick=()=>go(cur+1);
+$$('[data-go]').forEach(b=>b.onclick=()=>go(+b.dataset.go-1));
+document.addEventListener('keydown',e=>{if(!$('#respanel').hidden){if(e.key==='Escape')closeRes();return}const t=e.target.tagName;if(t==='INPUT'||t==='TEXTAREA')return;
+  if(e.key==='ArrowRight'||e.key==='PageDown')go(cur+1);else if(e.key==='ArrowLeft'||e.key==='PageUp')go(cur-1)});
+const fromHash=()=>{const m=/^#s(\d+)$/.exec(location.hash);return m?+m[1]-1:0};
+addEventListener('hashchange',()=>go(fromHash(),true));
+slides.forEach(s=>s.hidden=true);slides[0].hidden=false;go(fromHash(),true);
+
+/* topologi highlight */
+$$('[data-hl]').forEach(b=>b.onclick=()=>{
+  const v=b.dataset.hl;$$('[data-hl]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+  $$('#topoSvg .seg').forEach(g=>g.style.opacity=(v==='all'||g.dataset.v===v)?'1':'.18');
+});
+
+/* konfigurasi */
+const CODE=[
+ {cap:'Langkah 1 · mode konfigurasi global.',t:`<span class="k">enable</span>
+<span class="k">configure terminal</span>
+<span class="k">vlan 10</span>
+ name IT
+<span class="k">vlan 20</span>
+ name TEACHER
+<span class="k">vlan 30</span>
+ name STUDENT
+exit`},
+ {cap:'Langkah 2 · ulangi pola yang sama untuk Fa0/9-16 (VLAN 20) dan Fa0/17-24 (VLAN 30).',t:`<span class="k">interface range fa0/1-8</span>
+ switchport mode access
+ switchport access vlan 10
+exit
+<span class="k">interface range fa0/9-16</span>
+ switchport mode access
+ switchport access vlan 20
+exit`},
+ {cap:'Langkah 3 · trunk di uplink, VLAN dibatasi.',t:`<span class="k">interface gi0/1</span>
+ switchport mode trunk
+ switchport trunk allowed vlan 10,20,30
+ no shutdown
+exit
+<span class="c">! verifikasi</span>
+do show interfaces trunk`},
+ {cap:'Langkah 4 · tiap SVI menjadi gateway VLAN-nya.',t:`<span class="k">ip routing</span>
+<span class="k">interface vlan 10</span>
+ ip address 192.168.10.1 255.255.255.0
+ no shutdown
+<span class="k">interface vlan 20</span>
+ ip address 192.168.20.1 255.255.255.0
+ no shutdown
+<span class="c">! ulangi untuk vlan 30</span>`}];
+function showStep(i){$$('.step').forEach((b,j)=>b.setAttribute('aria-selected',String(j===i)));$('#codebox').innerHTML=CODE[i].t;$('#codecap').textContent=CODE[i].cap}
+$$('.step').forEach(b=>b.onclick=()=>showStep(+b.dataset.step));showStep(0);
+
+/* simulasi */
+const DEVS=[
+ {id:'it1',name:'PC-IT1',port:'Fa0/1',want:'10',ic:'pc'},
+ {id:'it2',name:'PC-IT2',port:'Fa0/2',want:'10',ic:'pc'},
+ {id:'g1',name:'PC-Guru',port:'Fa0/9',want:'20',ic:'pc'},
+ {id:'g2',name:'Laptop-Guru',port:'Fa0/10',want:'20',ic:'lap'},
+ {id:'s1',name:'PC-Siswa1',port:'Fa0/17',want:'30',ic:'pc'},
+ {id:'s2',name:'PC-Siswa2',port:'Fa0/18',want:'30',ic:'pc'},
+ {id:'up',name:'Uplink router',port:'Gi0/1',want:'trunk',ic:'rt'}];
+const ICON={pc:'<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>',lap:'<rect x="5" y="5" width="14" height="10" rx="1.5"/><path d="M3 19h18"/>',rt:'<rect x="3" y="12" width="18" height="7" rx="2"/><path d="M8 12V8M16 12V8M7 16h.01M11 16h.01"/>'};
+let place={},armed=null,simState=null;
+function devBtn(d){
+  const b=document.createElement('button');b.type='button';b.className='dev';b.draggable=true;b.dataset.id=d.id;b.setAttribute('aria-pressed',String(armed===d.id));
+  b.innerHTML=`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">${ICON[d.ic]}</svg><span>${d.name}<small>${d.port}</small></span>`;
+  b.onclick=()=>{armed=armed===d.id?null:d.id;renderSim()};
+  b.addEventListener('dragstart',e=>{e.dataTransfer.setData('text/plain',d.id);e.dataTransfer.effectAllowed='move'});
+  return b;
+}
+function renderSim(clear){
+  const pal=$('#palette');[...pal.querySelectorAll('.dev')].forEach(n=>n.remove());
+  $$('.zone .items').forEach(n=>n.innerHTML='');
+  DEVS.forEach(d=>{const b=devBtn(d);const z=place[d.id];if(z)$(`.zone[data-zone="${z}"] .items`).append(b);else pal.append(b)});
+  $$('.zone').forEach(z=>z.classList.toggle('armed',!!armed));
+  const ports=$('#swports');ports.innerHTML='';
+  DEVS.forEach(d=>{const i=document.createElement('i');const z=place[d.id];i.style.background=z==='10'?'var(--v10)':z==='20'?'var(--v20)':z==='30'?'var(--v30)':z==='trunk'?'var(--cyan)':'#33445e';ports.append(i)});
+  if(clear){$('#simres').hidden=true;['10','20','30'].forEach(v=>$('#gw'+v).className='')}
+}
+function drop(zone,id){if(!id)return;place[id]=zone;armed=null;renderSim(true)}
+$$('.zone').forEach(z=>{
+  z.querySelector('.drop').onclick=()=>{if(armed)drop(z.dataset.zone,armed);else showRes(false,'Pilih perangkat dulu, lalu klik "Taruh di sini".')};
+  z.addEventListener('dragover',e=>{e.preventDefault();z.classList.add('over')});
+  z.addEventListener('dragleave',()=>z.classList.remove('over'));
+  z.addEventListener('drop',e=>{e.preventDefault();z.classList.remove('over');drop(z.dataset.zone,e.dataTransfer.getData('text/plain'))});
+});
+const pal=$('#palette');
+pal.addEventListener('dragover',e=>e.preventDefault());
+pal.addEventListener('drop',e=>{e.preventDefault();const id=e.dataTransfer.getData('text/plain');delete place[id];renderSim(true)});
+function showRes(ok,msg){const r=$('#simres');r.hidden=false;r.className='result '+(ok?'ok':'bad');r.textContent=msg}
+$('#simcheck').onclick=()=>{
+  const errs=[];
+  DEVS.forEach(d=>{const z=place[d.id];const b=document.querySelector(`.dev[data-id="${d.id}"]`);b.classList.remove('ok','bad');
+    if(!z){errs.push(d.name+' belum ditempatkan');return}
+    if(z===d.want)b.classList.add('ok');else{b.classList.add('bad');errs.push(d.name+(d.want==='trunk'?' harus di trunk':' seharusnya di VLAN '+d.want))}});
+  ['10','20','30'].forEach(v=>{const i=$('#gw'+v);const ok=i.value.trim()==='192.168.'+v+'.1';i.className=ok?'ok':'bad';if(!ok)errs.push('Gateway VLAN '+v+' belum tepat')});
+  simState=errs.length?'bad':'ok';if(window.__resRefresh)window.__resRefresh();
+  if(!errs.length)showRes(true,'Desain tepat. Trunk Gi0/1 membawa VLAN 10,20,30 dan tiap VLAN punya gateway .1. Siap dikonfigurasi di Lab Maya.');
+  else showRes(false,errs.length+' hal perlu diperbaiki: '+errs.slice(0,3).join('; ')+(errs.length>3?'; …':'.'));
+};
+$('#simreset').onclick=()=>{place={};armed=null;simState=null;if(window.__resRefresh)window.__resRefresh();['10','20','30'].forEach(v=>$('#gw'+v).value='');renderSim(true)};
+renderSim(true);
+
+/* evaluasi */
+const QS=[
+ {q:'VLAN membagi satu jaringan fisik menjadi …',o:['Beberapa jaringan logis','Beberapa kabel fisik','Satu broadcast domain besar'],a:0,e:'Setiap VLAN adalah jaringan logis dan broadcast domain tersendiri.'},
+ {q:'Port yang terhubung ke PC dan menjadi anggota satu VLAN adalah …',o:['Trunk port','Access port','Uplink port'],a:1,e:'Access port membawa satu VLAN tanpa tag.'},
+ {q:'Standar tagging frame pada trunk port adalah …',o:['IEEE 802.3','IEEE 802.11','IEEE 802.1Q'],a:2,e:'802.1Q menyisipkan VLAN ID ke dalam frame.'},
+ {q:'Gateway untuk VLAN 20 TEACHER pada tabel kebutuhan adalah …',o:['192.168.20.1','192.168.20.11','192.168.2.1'],a:0,e:'Alamat .1 dipakai gateway; .2 – .10 dikecualikan dari DHCP.'},
+ {q:'PC beda VLAN tidak bisa ping, padahal gateway aktif. Perintah yang kurang di switch Layer 3?',o:['switchport mode trunk','ip routing','vlan 20'],a:1,e:'Tanpa ip routing, switch tidak meneruskan paket antar-VLAN.'},
+ {q:'Perintah untuk melihat VLAN beserta port anggotanya adalah …',o:['show vlan brief','show ip route','show interfaces trunk'],a:0,e:'show vlan brief menampilkan VLAN ID, nama, status, dan port.'}];
+let qs=QS.map(()=>null);
+function renderQuiz(){
+  const g=$('#quizgrid');g.innerHTML='';
+  QS.forEach((Q,i)=>{
+    const c=document.createElement('article');c.className='qcard'+(qs[i]===null?'':(qs[i]===Q.a?' done-ok':' done-bad'));
+    c.innerHTML=`<span class="qn">Kartu ${i+1}</span><p class="q"></p><div class="qopts"></div><p class="qfb" aria-live="polite"></p>`;
+    c.querySelector('.q').textContent=Q.q;
+    const box=c.querySelector('.qopts');
+    Q.o.forEach((o,j)=>{const b=document.createElement('button');b.type='button';b.className='qopt';b.textContent=String.fromCharCode(65+j)+'. '+o;
+      if(qs[i]!==null){b.disabled=true;if(j===Q.a)b.classList.add('right');else if(j===qs[i])b.classList.add('wrong')}
+      b.onclick=()=>{const before=qs.filter(v=>v!==null).length;qs[i]=j;renderQuiz();if(before===QS.length-1&&qs.every(v=>v!==null))setTimeout(()=>{if($('#respanel').hidden)openRes('mine')},900)};box.append(b)});
+    if(qs[i]!==null)c.querySelector('.qfb').textContent=(qs[i]===Q.a?'Benar. ':'Kurang tepat. ')+Q.e;
+    g.append(c);
+  });
+  $('#qscore').textContent='Skor '+qs.filter((v,i)=>v===QS[i].a).length+'/'+QS.length;
+  if(window.__resRefresh)window.__resRefresh();
+}
+$('#qreset').onclick=()=>{qs=QS.map(()=>null);renderQuiz()};
+
+/* ---------- hasil nilai: siswa & rekap guru ---------- */
+const KKTP=80;
+let DB=null,UID=null,isTeacher=false,backend='loading',rows=[],teacherSub=false,lastFocus=null,sending=false;
+function computeScore(){
+  const benar=qs.filter((v,i)=>v===QS[i].a).length, dijawab=qs.filter(v=>v!==null).length;
+  const nilai=Math.round(benar/QS.length*80+(simState==='ok'?20:0));
+  return {benar,dijawab,total:QS.length,sim:simState==='ok'?'tepat':simState==='bad'?'belum tepat':'belum diperiksa',nilai,tuntas:nilai>=KKTP};
+}
+function renderMine(){
+  const r=computeScore();
+  $('#rNilai').textContent=r.nilai;
+  const st=$('#rStatus');st.textContent=r.tuntas?'Tuntas':'Belum tuntas';st.classList.toggle('pass',r.tuntas);
+  $('#rKartu').textContent=r.benar+'/'+r.total+' benar · '+r.dijawab+'/'+r.total+' dijawab';
+  const ol=$('#rQlist');ol.innerHTML='';
+  QS.forEach((Q,i)=>{const li=document.createElement('li');const v=qs[i];
+    li.className=v===null?'wait':(v===Q.a?'ok':'bad');li.textContent=v===null?'Belum dijawab':(v===Q.a?'Benar':'Salah');ol.append(li)});
+  $('#rSim').textContent=r.sim==='tepat'?'Desain tepat (+20)':r.sim==='belum tepat'?'Belum tepat (+0)':'Belum diperiksa (+0)';
+  $('#rSimNote').hidden=r.sim==='tepat';
+  updateSendState();
+}
+window.__resRefresh=()=>{if(!$('#respanel').hidden)renderMine()};
+function sendBlocker(){
+  const r=computeScore();
+  if(r.dijawab<r.total)return 'Jawab semua kartu evaluasi dulu ('+r.dijawab+'/'+r.total+').';
+  return '';
+}
+function updateSendState(){
+  const b=sendBlocker();$('#fSend').disabled=!!b||sending;
+  let hint=b;
+  if(!b&&backend==='loading')hint='Menyiapkan pengiriman…';
+  else if(!b&&(!$('#fNama').value.trim()||!$('#fKelas').value.trim()))hint='Isi nama dan kelas, lalu kirim.';
+  $('#fHint').textContent=hint;
+}
+['fNama','fKelas','fAbsen'].forEach(id=>$('#'+id).addEventListener('input',updateSendState));
+function flash(ok,msg){const m=$('#fMsg');m.hidden=false;m.className='result '+(ok?'ok':'bad');m.textContent=msg}
+const jam=iso=>{try{return new Date(iso).toLocaleString('id-ID',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}catch(e){return iso}};
+function showLast(d){const p=$('#fLast');if(!d){p.hidden=true;return}p.hidden=false;
+  p.textContent='Kiriman terakhirmu: nilai '+d.nilai+' ('+(d.tuntas?'tuntas':'belum tuntas')+'), '+jam(d.dikirim)+' · kiriman ke-'+(d.percobaan||1)+'.'}
+$('#sendForm').addEventListener('submit',async e=>{
+  e.preventDefault();if(sendBlocker()||sending)return;
+  if(!$('#fNama').value.trim()){flash(false,'Tulis nama lengkapmu dulu.');$('#fNama').focus();return}
+  if(!$('#fKelas').value.trim()){flash(false,'Tulis kelasmu dulu, misalnya XI TJKT 1.');$('#fKelas').focus();return}
+  if(backend==='loading'){flash(false,'Pengiriman sedang disiapkan. Tunggu sebentar, lalu tekan Kirim lagi.');return}
+  if(backend!=='ok'){flash(false,'Nilai belum bisa dikirim dari tampilan ini. Buka media lewat link dari guru dan pastikan kamu sudah masuk ke akun Claude.');return}
+  sending=true;updateSendState();flash(true,'Mengirim…');
+  const r=computeScore(),ref=DB.doc('nilai/'+UID);let prev=null;
+  try{const snap=await ref.get();prev=snap.exists?snap.data():null}catch(err){}
+  const now=new Date().toISOString();
+  const riwayat=((prev&&Array.isArray(prev.riwayat))?prev.riwayat:[]).concat([{nilai:r.nilai,dikirim:now}]).slice(-5);
+  const body={nama:$('#fNama').value.trim().slice(0,80),kelas:$('#fKelas').value.trim().slice(0,30),absen:$('#fAbsen').value.trim().slice(0,3),
+    kartuBenar:r.benar,kartuTotal:r.total,jawaban:qs.map(v=>v===null?-1:v),simulasi:r.sim,nilai:r.nilai,tuntas:r.tuntas,
+    percobaan:((prev&&+prev.percobaan)||0)+1,dikirim:now,riwayat};
+  try{await ref.set(body);flash(true,'Terkirim ke guru, '+jam(now)+'. Nilaimu: '+r.nilai+'.');showLast(body)}
+  catch(err){const c=err&&err.code;
+    if(c==='invalid_argument')flash(false,'Akunmu belum boleh mengirim nilai. Minta guru membagikan link dengan akses Contributor.');
+    else if(c==='unavailable')flash(false,'Koneksi sedang terganggu. Tunggu sebentar, lalu tekan Kirim lagi.');
+    else if(c==='revoked')flash(false,'Akses ke media ini berubah. Muat ulang halaman, lalu coba lagi.');
+    else flash(false,'Nilai belum terkirim. Coba lagi sebentar lagi.');}
+  finally{sending=false;updateSendState()}
+});
+
+function renderTeacher(){
+  const sel=$('#tKelas'),cur=sel.value;
+  const kelas=[...new Set(rows.map(r=>String(r.kelas||'')).filter(Boolean))].sort();
+  sel.innerHTML='<option value="">Semua kelas</option>';kelas.forEach(k=>sel.add(new Option(k,k)));
+  if(kelas.includes(cur))sel.value=cur;
+  const list=rows.filter(r=>!sel.value||String(r.kelas)===sel.value)
+    .sort((a,b)=>String(a.kelas).localeCompare(String(b.kelas))||(+a.absen||999)-(+b.absen||999)||String(a.nama).localeCompare(String(b.nama)));
+  $('#tCount').textContent=list.length;
+  $('#tAvg').textContent=list.length?(list.reduce((s,r)=>s+(+r.nilai||0),0)/list.length).toFixed(1):'–';
+  $('#tPass').textContent=list.filter(r=>(+r.nilai||0)>=KKTP).length;
+  const tb=$('#tBody');tb.innerHTML='';
+  list.forEach(r=>{const tr=document.createElement('tr');
+    const cells=[r.nama||'(tanpa nama)',r.kelas||'–',r.absen||'–',(r.kartuBenar??0)+'/'+(r.kartuTotal??6),r.simulasi||'–',r.nilai??0,(+r.nilai||0)>=KKTP?'Tuntas':'Belum tuntas','ke-'+(r.percobaan||1),jam(r.dikirim)];
+    cells.forEach((v,i)=>{const td=document.createElement('td');td.textContent=String(v);if(i===5||i===2)td.className='num';if(i===6){td.style.color=(+r.nilai||0)>=KKTP?'var(--ok)':'var(--bad)';td.style.fontWeight='600'}tr.append(td)});
+    tb.append(tr)});
+  $('#tMsg').hidden=rows.length>0;
+  const bd=$('#resBadge');bd.hidden=!rows.length;bd.textContent=rows.length;
+}
+$('#tKelas').onchange=renderTeacher;
+function subscribeTeacher(){
+  if(teacherSub||!DB)return;teacherSub=true;
+  DB.collection('nilai').onSnapshot(snap=>{rows=snap.docs.map(d=>Object.assign({id:d.id},d.data()));renderTeacher()},
+    err=>{$('#tMsg').hidden=false;$('#tMsg').textContent='Rekap belum bisa dimuat. Muat ulang halaman untuk mencoba lagi.'});
+}
+const csvCell=v=>{let s=String(v??'');if(/^[=+\-@]/.test(s))s="'"+s;return /[",\n;]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s};
+$('#tCsv').onclick=async()=>{
+  const head=['Nama','Kelas','Absen','Kartu benar','Kartu total','Simulasi','Nilai','Status','Kiriman ke','Waktu kirim'];
+  const lines=[head].concat(rows.map(r=>[r.nama,r.kelas,r.absen,r.kartuBenar,r.kartuTotal,r.simulasi,r.nilai,(+r.nilai||0)>=KKTP?'Tuntas':'Belum tuntas',r.percobaan,r.dikirim])).map(a=>a.map(csvCell).join(','));
+  let dl=null;try{dl=window.claude&&window.claude.use?await window.claude.use('downloads'):null}catch(e){}
+  if(!dl){$('#tMsg').hidden=false;$('#tMsg').textContent='Unduhan tidak tersedia di tampilan ini.';return}
+  try{await dl.save({filename:'rekap-nilai-vlan.csv',data:'﻿'+lines.join('\n')})}catch(e){}
+};
+
+function setTab(t){
+  $('#tabMine').setAttribute('aria-selected',String(t==='mine'));$('#tabTeacher').setAttribute('aria-selected',String(t==='teacher'));
+  $('#paneMine').hidden=t!=='mine';$('#paneTeacher').hidden=t!=='teacher';
+  if(t==='teacher'){subscribeTeacher();renderTeacher()}else renderMine();
+}
+$('#tabMine').onclick=()=>setTab('mine');$('#tabTeacher').onclick=()=>setTab('teacher');
+function openRes(tab){lastFocus=document.activeElement;$('#scrim').hidden=false;$('#respanel').hidden=false;setTab(tab||'mine');$('#resClose').focus()}
+function closeRes(){$('#scrim').hidden=true;$('#respanel').hidden=true;if(lastFocus&&lastFocus.focus)lastFocus.focus()}
+$('#openRes').onclick=()=>openRes(isTeacher?'teacher':'mine');
+$('#qsend').onclick=()=>openRes('mine');
+$('#resClose').onclick=closeRes;$('#scrim').onclick=closeRes;
+
+(async()=>{
+  if(!window.claude||typeof window.claude.use!=='function'){backend='none';updateSendState();return}
+  let db=null,user=null;
+  try{[db,user]=await Promise.all([window.claude.use('db'),window.claude.use('user')])}catch(e){}
+  DB=db;
+  if(user){try{UID=await user.id()}catch(e){}
+    try{isTeacher=!!(await user.isOwner())||!!(await user.canEdit())}catch(e){}}
+  backend=(DB&&UID)?'ok':'none';
+  if(isTeacher){$('#tabTeacher').hidden=false;subscribeTeacher()}
+  if(backend==='ok'){try{const s=await DB.doc('nilai/'+UID).get();if(s.exists){const d=s.data();showLast(d);
+      if(!$('#fNama').value)$('#fNama').value=d.nama||'';if(!$('#fKelas').value)$('#fKelas').value=d.kelas||'';if(!$('#fAbsen').value)$('#fAbsen').value=d.absen||''}}catch(e){}}
+  updateSendState();
+})();
+renderQuiz();
+})();
+</script>
+
+</body>
+</html>
